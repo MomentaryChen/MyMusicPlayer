@@ -24,10 +24,11 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
     private Button bplay,bpause,bstop;
     private SeekBar seekBar ;
-    private TextView time;
+    private TextView song_time;
     private MediaPlayer mp=new MediaPlayer();
     int now_sencond = 0;
     private Timer mTimer = new Timer();
+    private String now_time,end_time;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,12 +38,11 @@ public class MainActivity extends AppCompatActivity {
         bpause = (Button) findViewById(R.id.pause);
         bstop = (Button) findViewById(R.id.stop);
         seekBar = (SeekBar) findViewById(R.id.player_seek);
-        time = (TextView) findViewById(R.id.time);
+        song_time = (TextView) findViewById(R.id.song_time);
         mp=MediaPlayer.create(this, R.raw.raw);
         //歌曲時間長度顯示
         int t = mp.getDuration()/1000;
-        String str = String.format("%02d:%02d",(t/ 60),t % 60);
-        time.setText( str);
+        end_time= String.format("%02d:%02d",(t/ 60),t % 60);
 //        mp.prepareAsync();
         seekBar.setOnSeekBarChangeListener(new MySeekbar());
         seekBar.setMax( mp.getDuration());
@@ -151,6 +151,9 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.what) {
                 case 0:
                     seekBar.setProgress(mp.getCurrentPosition());
+                    int t = mp.getCurrentPosition() /1000 ;
+                    now_time = String.format("%02d:%02d",(t/ 60),t % 60);
+                    song_time.setText(now_time+"/"+end_time);
                     break;
                 default:
                     break;
