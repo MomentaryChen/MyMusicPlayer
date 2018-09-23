@@ -1,163 +1,157 @@
 package com.example.momentary.mymusicplayer;
 
-import android.media.MediaPlayer;
-import android.net.Uri;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.SeekBar;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import com.example.momentary.mymusicplayer.HotelArrayAdapt;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private Button bplay,bpause,bstop;
-    private SeekBar seekBar ;
-    private TextView song_time;
-    private MediaPlayer mp=new MediaPlayer();
-    int now_sencond = 0;
-    private Timer mTimer = new Timer();
-    private String now_time,end_time;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    private HotelArrayAdapt adapter = null;
+    Button btn ;
+    ListView lvHotels;
+    double x ,y ;
+    private static final int LIST_PETS = 1;
+    List<Hotel> arraylist;
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        bplay = (Button) findViewById(R.id.play);
-        bpause = (Button) findViewById(R.id.pause);
-        bstop = (Button) findViewById(R.id.stop);
-        seekBar = (SeekBar) findViewById(R.id.player_seek);
-        song_time = (TextView) findViewById(R.id.song_time);
-        mp=MediaPlayer.create(this, R.raw.raw);
-        //歌曲時間長度顯示
-        int t = mp.getDuration()/1000;
-        end_time= String.format("%02d:%02d",(t/ 60),t % 60);
-//        mp.prepareAsync();
-        seekBar.setOnSeekBarChangeListener(new MySeekbar());
-        seekBar.setMax( mp.getDuration());
-//        mp=MediaPlayer.create(this, Uri.parse("http://www.youtube.com/watch?v=SgGhtjKWLOE&feature=feedrec"));
-        bplay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    if (mp!= null) {
-                        mp.stop();
-                    }
-                    mp.prepare();
-                    mp.start();
 
+        lvHotels= (ListView)findViewById(R.id.listview_pet);
+        adapter = new HotelArrayAdapt(this, new ArrayList<Hotel>());
+        lvHotels.setAdapter(adapter);
+        getPetsFromFirebase();
 
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        bpause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mp.isPlaying()) {
-                    bpause.setText("PAUSE");
-                    now_sencond = mp.getCurrentPosition();
-                    mp.pause();
-                }else{
-                    bpause.setText("RESUME");
-                    mp.seekTo(now_sencond);
-                    mp.start();
-                }
-            }
-        });
-        bstop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mp != null) {
-                    mp.stop();
-                }
-            }
-        });
-        final TimerTask timertask = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    if (mp!= null && mp.isPlaying() == true) {
-                        Message message = new Message();
-                        message.what = 0;
-                        mHandler.sendMessage(message);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        new Thread(){
-            @Override
-            public void run(){
-                mTimer.schedule(timertask,100,100);
-            }
-        }.run();
-    }
-    @Override
-    protected void onDestroy() {
-        if(mp != null)
-            mp.stop();
-            mp.release();
-            mp=null;
-        super.onDestroy();
+        lvHotels.setOnItemClickListener(listener);
+
     }
 
-    class MySeekbar implements SeekBar.OnSeekBarChangeListener {
-        //当进度条变化时触发
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        }
-        //开始拖拽进度条
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-        //停止拖拽进度条
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            if(mp!= null && mp.isPlaying()){
-                mp.seekTo(seekBar.getProgress());
-                mp.start();
-            }
-
-        }
-        private void updateTime(TextView textView,int millisecond){
-            int second = millisecond/1000;
-            int mm = second % 3600 / 60;
-            int ss = second % 60;
-            String str = null;
-            str = String.format("%02d:%02d",mm,ss);
-            textView.setText(str);
-        }
-    }
-    private Handler mHandler = new Handler() {
+    private ListView.OnItemClickListener listener = new ListView.OnItemClickListener() {
         @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Intent intent = new Intent();
+            x = arraylist.get(position).x;
+            y = arraylist.get(position).y;
+            String name = arraylist.get(position).name;
+            intent.putExtra("x",x);
+            intent.putExtra("y",y);
+            intent.putExtra("name",name);
+            intent.setClass(MainActivity.this,PlayerActivity.class);
+            startActivity(intent);
+        }
+    };
+
+    private void getPetsFromFirebase() {
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("");
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                new FirebaseThread(dataSnapshot,handler).start();
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.v("AdoptPet", databaseError.getMessage());
+            }
+        });
+
+    }
+
+    private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
             switch (msg.what) {
-                case 0:
-                    seekBar.setProgress(mp.getCurrentPosition());
-                    int t = mp.getCurrentPosition() /1000 ;
-                    now_time = String.format("%02d:%02d",(t/ 60),t % 60);
-                    song_time.setText(now_time+"/"+end_time);
+                case LIST_PETS: {
+                    List<Hotel> hotels = (List<Hotel>)msg.obj;
+                    refreshPetList(hotels);
                     break;
-                default:
-                    break;
+                }
             }
         }
     };
+
+    private void refreshPetList(List<Hotel> hotels) {
+        arraylist = hotels;
+        adapter.clear();
+        adapter.addAll(hotels);
+
+    }
+    public static class Hotel {
+        private String name;
+        private  String context;
+        private Bitmap img;
+        private double x;
+        private double y ;
+
+        public double getX() {
+            return x;
+        }
+
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setY(double y) {
+            this.y = y;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getContext() {
+            return context;
+        }
+
+        public void setContext(String context) {
+            this.context = context;
+        }
+
+        public Bitmap getImg() {
+            return img;
+        }
+
+        public void setImg(Bitmap img) {
+            this.img = img;
+        }
+    }
 }
