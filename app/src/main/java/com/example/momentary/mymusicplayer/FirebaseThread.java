@@ -30,19 +30,15 @@ class FirebaseThread extends Thread {
 
     @Override
     public void run() {
-        List<MainActivity.Hotel> lsPets = new ArrayList<>();
+        List<MainActivity.Song> AllSongs = new ArrayList<>();
         for (DataSnapshot ds : dataSnapshot.getChildren()) {
             DataSnapshot dsSName = ds.child("Name");
-            DataSnapshot dsDescription = ds.child("Description");
-            DataSnapshot dsX = ds.child("src");
-            DataSnapshot dsY = ds.child("Py");
+            DataSnapshot dsDescription = ds.child("author");
+            DataSnapshot dsURL = ds.child("url");
 
             String name = (String)dsSName.getValue();
-            String description = (String)dsDescription.getValue();
-            double x = Double.valueOf((String)dsX.getValue());
-            double y = Double.valueOf((String)dsY.getValue());
-            //內容太長要擷取
-            if(description.length()>=30) description =cutString(description);
+            String author = (String)dsDescription.getValue();
+            String url = (String)dsURL.getValue();
 
             DataSnapshot dsImg = ds.child("Picture1");
             String imgUrl = (String) dsImg.getValue();
@@ -51,19 +47,17 @@ class FirebaseThread extends Thread {
             //圖片太多無法解析的  放一個可以解析的圖片
             //imgUrl="https://taiwanstay.net.tw/public/data/201209251136201603917.jpg";
             petImg = getImgBitmap(imgUrl);
-            MainActivity.Hotel aHotel = new MainActivity.Hotel();
-            aHotel.setX(x);
-            aHotel.setY(y);
-            aHotel.setContext(description);
-            aHotel.setName(name);
-            aHotel.setImg(petImg);
-            lsPets.add(aHotel);
+            MainActivity.Song songs = new MainActivity.Song();
+            songs.setUrl(url);
+            songs.setName(name);
+            songs.setImg(petImg);
+            AllSongs.add(songs);
             Log.v("ImgURL",imgUrl);
-            Log.v("AdoptPet", name + ";" + description);
+            Log.v("Song", name + ";" +author);
         }
         Message msg = new Message();
         msg.what = LIST_PETS;
-        msg.obj = lsPets;
+        msg.obj = AllSongs;
         handler.sendMessage(msg);
     }
 
@@ -82,11 +76,8 @@ class FirebaseThread extends Thread {
 
         return null;
     }
-
-    private String cutString(String str){
-        return str.substring(0,30)+"...";
-    }
     private String proUrl(String str){
+        if(str==null) return null;
         if (str.equals("")) {
             return str;
         }else if(str.substring(0,4).equals("http")){

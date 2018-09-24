@@ -28,7 +28,7 @@ public class PlayerActivity extends AppCompatActivity {
     private MediaPlayer mp=new MediaPlayer();
     int now_sencond = 0;
     private Timer mTimer = new Timer();
-    private String now_time,end_time;
+    private String now_time,end_time,url;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,13 +41,13 @@ public class PlayerActivity extends AppCompatActivity {
         song_time = (TextView) findViewById(R.id.song_time);
         //mp=MediaPlayer.create(this, R.raw.raw);
         //歌曲時間長度顯示
-
+        url=getIntent().getStringExtra("url");
         int t = mp.getDuration()/1000;
         end_time= String.format("%02d:%02d",(t/ 60),t % 60);
 //        mp.prepareAsync();
         seekBar.setOnSeekBarChangeListener(new MySeekbar());
         seekBar.setMax( mp.getDuration());
-        mp=MediaPlayer.create(this, Uri.parse("http://mp3.9ku.com/mp3/637/636209.mp3"));
+        mp=MediaPlayer.create(this, Uri.parse(url));
         bplay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -13,9 +13,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class HotelArrayAdapt extends ArrayAdapter {
+public class SongArrayAdapt extends ArrayAdapter {
     Context context;
-    public HotelArrayAdapt(@NonNull Context context, ArrayList<MainActivity.Hotel> items) {
+    public SongArrayAdapt (@NonNull Context context, ArrayList<MainActivity.Song> items) {
         super(context,0,items);
         this.context = context;
     }
@@ -26,16 +26,16 @@ public class HotelArrayAdapt extends ArrayAdapter {
         LayoutInflater inflater = LayoutInflater.from(context);
         LinearLayout itemlayout = null;
         if(convertView==null){
-            itemlayout = (LinearLayout) inflater.inflate(R.layout.item_hotel,null);
+            itemlayout = (LinearLayout) inflater.inflate(R.layout.item_song,null);
 
         }else{
             itemlayout = (LinearLayout)convertView;
         }
-        MainActivity.Hotel item = (MainActivity.Hotel) getItem(position);
+        MainActivity.Song item = (MainActivity.Song) getItem(position);
         TextView tvShelter = (TextView)itemlayout.findViewById(R.id.shelter);
         tvShelter.setText(item.getName());
         TextView tvKind = (TextView) itemlayout.findViewById(R.id.kind);
-        tvKind.setText(item.getContext());
+        tvKind.setText(item.getAuthor());
         ImageView ivPet = (ImageView) itemlayout.findViewById(R.id.petImg);
         if(item.getImg()!=null) ivPet.setImageBitmap(item.getImg());
 
