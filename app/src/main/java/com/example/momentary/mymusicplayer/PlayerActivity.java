@@ -22,19 +22,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PlayerActivity extends AppCompatActivity {
-    private Button bplay,bpause,bstop;
+    private Button bpause,bstop;
     private SeekBar seekBar ;
     private TextView song_time;
     private MediaPlayer mp=new MediaPlayer();
     int now_sencond = 0;
     private Timer mTimer = new Timer();
     private String now_time,end_time,url;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-        bplay = (Button) findViewById(R.id.play);
         bpause = (Button) findViewById(R.id.pause);
         bstop = (Button) findViewById(R.id.stop);
         seekBar = (SeekBar) findViewById(R.id.player_seek);
@@ -42,41 +40,30 @@ public class PlayerActivity extends AppCompatActivity {
         //mp=MediaPlayer.create(this, R.raw.raw);
         //歌曲時間長度顯示
         url=getIntent().getStringExtra("url");
-        int t = mp.getDuration()/1000;
-        end_time= String.format("%02d:%02d",(t/ 60),t % 60);
-//        mp.prepareAsync();
         seekBar.setOnSeekBarChangeListener(new MySeekbar());
-        seekBar.setMax( mp.getDuration());
         mp=MediaPlayer.create(this, Uri.parse(url));
-        bplay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    if (mp!= null) {
-                        mp.stop();
-                    }
-                    mp.prepare();
-                    mp.start();
+        int t = mp.getDuration()/1000;
+        seekBar.setMax(t);
+        end_time= String.format("%02d:%02d",(t/ 60),t % 60);
+        if (mp!= null){ mp.stop(); }
+        mp.prepareAsync();
 
+        try {
+            new Thread().sleep(1000);
 
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         bpause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mp.isPlaying()) {
-                    bpause.setText("PAUSE");
+                    bpause.setText("RESUME");
                     now_sencond = mp.getCurrentPosition();
                     mp.pause();
                 }else{
-                    bpause.setText("RESUME");
+                    bpause.setText("PAUSE");
                     mp.seekTo(now_sencond);
                     mp.start();
                 }
@@ -110,11 +97,11 @@ public class PlayerActivity extends AppCompatActivity {
                 mTimer.schedule(timertask,100,100);
             }
         }.run();
+        mp.start();
     }
     @Override
     protected void onDestroy() {
-        if(mp != null)
-            mp.stop();
+        if(mp != null) mp.stop();
         mp.release();
         mp=null;
         super.onDestroy();
@@ -151,7 +138,8 @@ public class PlayerActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case 0:
-                    seekBar.setProgress(mp.getCurrentPosition());
+                    seekBar.setProgress(mp.getCurrentPosition()/1000);
+//                    Log.v("song_now_time",Integer.toString(mp.getCurrentPosition()));
                     int t = mp.getCurrentPosition() /1000 ;
                     now_time = String.format("%02d:%02d",(t/ 60),t % 60);
                     song_time.setText(now_time+"/"+end_time);

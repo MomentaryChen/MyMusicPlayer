@@ -20,7 +20,7 @@ class FirebaseThread extends Thread {
 
     private DataSnapshot dataSnapshot;
     private Handler handler;
-    private static final int LIST_PETS = 1;
+    private static final int LIST_SONGS = 1;
     private Bitmap petImg;
 
     public FirebaseThread(DataSnapshot dataSnapshot,Handler handler) {
@@ -33,7 +33,7 @@ class FirebaseThread extends Thread {
         List<MainActivity.Song> AllSongs = new ArrayList<>();
         for (DataSnapshot ds : dataSnapshot.getChildren()) {
             DataSnapshot dsSName = ds.child("Name");
-            DataSnapshot dsDescription = ds.child("author");
+            DataSnapshot dsDescription = ds.child("Author");
             DataSnapshot dsURL = ds.child("url");
 
             String name = (String)dsSName.getValue();
@@ -50,13 +50,14 @@ class FirebaseThread extends Thread {
             MainActivity.Song songs = new MainActivity.Song();
             songs.setUrl(url);
             songs.setName(name);
+            songs.setAuthor("歌手:" + author);
             songs.setImg(petImg);
             AllSongs.add(songs);
             Log.v("ImgURL",imgUrl);
             Log.v("Song", name + ";" +author);
         }
         Message msg = new Message();
-        msg.what = LIST_PETS;
+        msg.what = LIST_SONGS;
         msg.obj = AllSongs;
         handler.sendMessage(msg);
     }
@@ -73,12 +74,11 @@ class FirebaseThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return null;
     }
     private String proUrl(String str){
-        if(str==null) return null;
-        if (str.equals("")) {
+//        if(str==null) return null;
+        if (str.indexOf("https")!=-1) {
             return str;
         }else if(str.substring(0,4).equals("http")){
             return "https"+str.substring(4,str.length());

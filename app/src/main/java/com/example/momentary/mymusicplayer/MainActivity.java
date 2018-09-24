@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn ;
     ListView lvHotels;
     double x ,y ;
-    private static final int LIST_PETS = 1;
+    private static final int LIST_SONGS = 1;
     List<Song> arraylist;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case LIST_PETS: {
+                case LIST_SONGS: {
                     List<Song> songs = (List<Song>)msg.obj;
                     refreshPetList(songs);
                     break;
